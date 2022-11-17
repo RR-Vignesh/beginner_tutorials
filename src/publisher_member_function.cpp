@@ -19,9 +19,11 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "cpp_pubsub/srv/modify_string.hpp" 
+#include "cpp_pubsub/srv/modify_string.hpp"
 
 using namespace std::chrono_literals;
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 /* This example creates a subclass of Node and uses std::bind() to register a
  * member function as a callback from the timer. */
@@ -29,53 +31,61 @@ using namespace std::chrono_literals;
 class MinimalPublisher : public rclcpp::Node {
  public:
   MinimalPublisher() : Node("minimal_publisher"), count_(0) {
-    try{
-    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
-    timer_ = this->create_wall_timer(
-        500ms, std::bind(&MinimalPublisher::timer_callback, this));
-    RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialize the Publisher node");  
-    server = this->create_service<cpp_pubsub::srv::ModifyString>("server_node", std::bind(&MinimalPublisher::modifyString,this,std::placeholders::_1,std::placeholders::_2));   
-    RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialize the Server");  
-    }
-     catch(...){
-      RCLCPP_ERROR_STREAM(this->get_logger(), "Error encountered at time of initialization!!");
+    try {
+      publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+      timer_ = this->create_wall_timer(
+          500ms, std::bind(&MinimalPublisher::timer_callback, this));
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialize the Publisher node");
+      server = this->create_service<cpp_pubsub::srv::ModifyString>(
+          "service_node",
+          std::bind(&MinimalPublisher::modify_string, this,
+                    std::placeholders::_1, std::placeholders::_2));
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialize the Server");
+    } catch (...) {
+      RCLCPP_ERROR_STREAM(this->get_logger(),
+                          "Error encountered at time of initialization!!");
       RCLCPP_FATAL_STREAM(this->get_logger(), "Publisher may not work!!");
+      RCLCPP_WARN_STREAM(this->get_logger(), "Some error occured !");
     }
   }
 
-  void modifyString(const std::shared_ptr<cpp_pubsub::srv::ModifyString::Request> request,   
-          std::shared_ptr<cpp_pubsub::srv::ModifyString::Response>       response) {
-  response->output = request->input + "String Modification from Service - Vignesh";
+  void modify_string(
+      const std::shared_ptr<cpp_pubsub::srv::ModifyString::Request> request,
+      std::shared_ptr<cpp_pubsub::srv::ModifyString::Response> response) {
+    response->output =
+        request->input + "String Modification from Service - Vignesh";
 
-  server_response_message = response->output;
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Request to Server\ninput: '%s'",request->input.c_str()); //+
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Response is : '%s'",response->output.c_str());}
+    server_response_message = response->output;
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Request to Server\ninput: '%s'",
+                request->input.c_str()); //+
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Response is : '%s'",
+                response->output.c_str());
+  }
 
-
- private:
+private:
   void timer_callback() {
     auto message = std_msgs::msg::String();
     message.data = server_response_message;
 
-    RCLCPP_DEBUG_STREAM(this->get_logger(), "Able to update message data ");  
-    RCLCPP_INFO(this->get_logger(), "Publishing the message : '%s'", message.data.c_str());
+    RCLCPP_DEBUG_STREAM(this->get_logger(), "Able to update message data ");
+    RCLCPP_INFO(this->get_logger(), "Publishing the message : '%s'",
+                message.data.c_str());
 
     publisher_->publish(message);
   }
-  
+
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::MinimalPublisher<std_msgs::msg::String>::SharedPtr publisher_;
-  rclcpp::Service<cpp_pubsub::srv::ModifyString>::SharedPtr server;               
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Service<cpp_pubsub::srv::ModifyString>::SharedPtr server;
   std::string server_response_message = "Hey !! This is Vignesh here ";
   size_t count_;
-
 };
 
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<MinimalPublisher>());
   rclcpp::shutdown();
-  RCLCPP_WARN_STREAM(node->get_logger(), "Shutting Down!! " << 4);
+  //RCLCPP_WARN_STREAM(node->get_logger(), "Shutting Down!! " << 4);
 
   return 0;
 }
