@@ -35,7 +35,7 @@ Open new terminal: -
 
 ```
 . install/setup.bash
-ros2 run cpp_pubsub listener  --ros-args --log-level debug
+ros2 run cpp_pubsub listener --ros-args --log-level debug
 ```
 
 Run with launch file: -
