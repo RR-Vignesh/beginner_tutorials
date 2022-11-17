@@ -2,7 +2,7 @@
 
 ## Overview
 
-There is a publisher node and subscriber node here. The publisher node publishes the following string "Hello, world! This is Vignesh here from UMD" to a topic and the subscriber listens to the string published by the publisher node from the same topic.
+There is a publisher node and service node here. The publisher node will publish a custom string message and the service wil modify the message and send a new message.
 
 ## Build/run steps
 
@@ -22,7 +22,7 @@ open a new terminal and type: -
 
 ```
 . install/setup.bash
-ros2 run cpp_pubsub listener
+ros2 run cpp_pubsub server_client
 ```
 
 
@@ -31,3 +31,5 @@ ros2 run cpp_pubsub listener
 1. ROS humble
 2. rclcpp
 3. std_msgs
+4. rosidl_default_generators
+5. rosidl_default_runtime
