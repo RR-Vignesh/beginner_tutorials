@@ -1,4 +1,4 @@
-// Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2022 Vignesh Ravichandran Radhakrishnan (rr94@umd.edu)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,24 +17,45 @@
 #include <memory>
 #include <string>
 
+#include "cpp_pubsub/srv/modify_string.hpp"
+#include "rclcpp/logger.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "cpp_pubsub/srv/modify_string.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
+// parameter types
+using PARAMETER_EVENT = std::shared_ptr<rclcpp::ParameterEventHandler>;
+using PARAMETER_HANDLE = std::shared_ptr<rclcpp::ParameterCallbackHandle>;
+
 /* This example creates a subclass of Node and uses std::bind() to register a
  * member function as a callback from the timer. */
 
+/**
+ * @brief MinimalPublisher class has the publisher and server node. The
+ * Publisher node publishes a message and the server modifies the string
+ *
+ */
 class MinimalPublisher : public rclcpp::Node {
  public:
   MinimalPublisher() : Node("minimal_publisher"), count_(0) {
     try {
       publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+      auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
+      param_desc.description = "This parameter is updated by given argument in "
+                               "launch file and it is "
+                               "used by publisher and subscriber node!";
+      this->declare_parameter("frequency", 2, param_desc);
+      auto frequency =
+          this->get_parameter("frequency").get_parameter_value().get<int>();
+
+      RCLCPP_INFO_STREAM(this->get_logger(), "Param value : " << frequency);
       timer_ = this->create_wall_timer(
-          500ms, std::bind(&MinimalPublisher::timer_callback, this));
+          std::chrono::milliseconds(static_cast<int>(1000 / frequency)),
+          std::bind(&MinimalPublisher::timer_callback, this));
+
       RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialize the Publisher node");
       server = this->create_service<cpp_pubsub::srv::ModifyString>(
           "service_node",
@@ -49,20 +70,30 @@ class MinimalPublisher : public rclcpp::Node {
     }
   }
 
+  /**
+   * @brief Callback function for processing the request of modifying the string
+   *
+   * @param request : string
+   * @param response : string
+   */
   void modify_string(
       const std::shared_ptr<cpp_pubsub::srv::ModifyString::Request> request,
       std::shared_ptr<cpp_pubsub::srv::ModifyString::Response> response) {
-    response->output =
+     response->output =
         request->input + "String Modification from Service - Vignesh";
 
     server_response_message = response->output;
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Request to Server\ninput: '%s'",
-                request->input.c_str()); //+
+                request->input.c_str());
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Response is : '%s'",
                 response->output.c_str());
   }
 
-private:
+ private:
+  /**
+   * @brief Publish the message on topic at a defined rate
+   *
+   */
   void timer_callback() {
     auto message = std_msgs::msg::String();
     message.data = server_response_message;
@@ -85,7 +116,7 @@ int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<MinimalPublisher>());
   rclcpp::shutdown();
-  //RCLCPP_WARN_STREAM(node->get_logger(), "Shutting Down!! " << 4);
+  // RCLCPP_WARN_STREAM(node->get_logger(), "Shutting Down!! " << 4);
 
   return 0;
 }

@@ -10,8 +10,16 @@
 
 using namespace std::chrono_literals;
 
+/**
+ * @brief ServerClient class creates a node to give the new string to the
+ * server.
+ * @details New string is given by user using an argument are then send to
+ * server, which is in the publisher node, and then server modifies the string
+ * and save for further use by publisher using the same topic.
+ */
+
 class ServerClient : public rclcpp::Node {
-public:
+ public:
   ServerClient() : Node("server_client") {
     client = this->create_client<cpp_pubsub::srv::ModifyString>("service_node");
   }

@@ -20,14 +20,31 @@
 
 using std::placeholders::_1;
 
+/**
+ * @brief Subscriber class Node for topic "topic"
+ *
+ */
+
 class MinimalSubscriber : public rclcpp::Node {
  public:
   MinimalSubscriber() : Node("minimal_subscriber") {
-    subscription_ = this->create_subscription<std_msgs::msg::String>(
-        "topic", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
+    try {
+      subscription_ = this->create_subscription<std_msgs::msg::String>(
+          "topic", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialized the Subscriber");
+    } catch (...) {
+      RCLCPP_ERROR_STREAM(this->get_logger(),
+                          "Error while initializing the subscriber ");
+      RCLCPP_FATAL_STREAM(this->get_logger(), "Subscriber may not work!!");
+    }
   }
 
  private:
+  /**
+   * @brief callback function to handle the message transmitted from the
+   * publisher node on the topic
+   * @param msg : string
+   */
   void topic_callback(const std_msgs::msg::String &msg) const {
     RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.data.c_str());
   }
