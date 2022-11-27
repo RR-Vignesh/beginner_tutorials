@@ -18,9 +18,12 @@
 #include <string>
 
 #include "cpp_pubsub/srv/modify_string.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/logger.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2_ros/static_transform_broadcaster.h"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -39,7 +42,7 @@ using PARAMETER_HANDLE = std::shared_ptr<rclcpp::ParameterCallbackHandle>;
  *
  */
 class MinimalPublisher : public rclcpp::Node {
- public:
+public:
   MinimalPublisher() : Node("minimal_publisher"), count_(0) {
     try {
       publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
@@ -62,6 +65,13 @@ class MinimalPublisher : public rclcpp::Node {
           std::bind(&MinimalPublisher::modify_string, this,
                     std::placeholders::_1, std::placeholders::_2));
       RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialize the Server");
+      // tf
+      tf_static_broadcaster_ =
+          std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+
+      // Publish static transforms once at startup
+      this->make_transforms();
+
     } catch (...) {
       RCLCPP_ERROR_STREAM(this->get_logger(),
                           "Error encountered at time of initialization!!");
@@ -79,7 +89,7 @@ class MinimalPublisher : public rclcpp::Node {
   void modify_string(
       const std::shared_ptr<cpp_pubsub::srv::ModifyString::Request> request,
       std::shared_ptr<cpp_pubsub::srv::ModifyString::Response> response) {
-     response->output =
+    response->output =
         request->input + "String Modification from Service - Vignesh";
 
     server_response_message = response->output;
@@ -89,7 +99,7 @@ class MinimalPublisher : public rclcpp::Node {
                 response->output.c_str());
   }
 
- private:
+private:
   /**
    * @brief Publish the message on topic at a defined rate
    *
@@ -105,11 +115,32 @@ class MinimalPublisher : public rclcpp::Node {
     publisher_->publish(message);
   }
 
+  void make_transforms() {
+    geometry_msgs::msg::TransformStamped t;
+
+    t.header.stamp = this->get_clock()->now();
+    t.header.frame_id = "world";
+    t.child_frame_id = "child_robot";
+
+    t.transform.translation.x = 1;
+    t.transform.translation.y = 2;
+    t.transform.translation.z = 3;
+    tf2::Quaternion q;
+    q.setRPY(0.1, 0.2, 0.3);
+    t.transform.rotation.x = q.x();
+    t.transform.rotation.y = q.y();
+    t.transform.rotation.z = q.z();
+    t.transform.rotation.w = q.w();
+
+    tf_static_broadcaster_->sendTransform(t);
+  }
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   rclcpp::Service<cpp_pubsub::srv::ModifyString>::SharedPtr server;
   std::string server_response_message = "Hey !! This is Vignesh here ";
   size_t count_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
 };
 
 int main(int argc, char *argv[]) {
