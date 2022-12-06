@@ -20,29 +20,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
+#include "rclcpp/rclcpp.hpp"
 #include <gtest/gtest.h>
 #include <stdlib.h>
-#include "rclcpp/rclcpp.hpp"
-
 
 #include "std_msgs/msg/string.hpp"
 
+/**
+ * @brief The class TaskPlanningFixture is to plan multiple tests
+ * 
+ */
 class TaskPlanningFixture : public testing::Test {
  public:
   TaskPlanningFixture()
-      : tester_node_(std::make_shared<rclcpp::Node>("basic_test"))
-  {
+      : tester_node_(std::make_shared<rclcpp::Node>("basic_test")) {
     RCLCPP_ERROR_STREAM(tester_node_->get_logger(), "DONE WITH CONSTRUCTOR!!");
   }
-
+/**
+ * @brief To Set Up the object
+ * 
+ */
   void SetUp() override {
     // Setup things that should occur before every test instance should go here
     RCLCPP_ERROR_STREAM(tester_node_->get_logger(), "DONE WITH SETUP!!");
   }
-
-  void TearDown() override {
-    std::cout << "DONE WITH TEARDOWN" << std::endl;
-  }
+/**
+ * @brief To end the test case
+ * 
+ */
+  void TearDown() override { std::cout << "DONE WITH TEARDOWN" << std::endl; }
 
  protected:
   rclcpp::Node::SharedPtr tester_node_;
@@ -55,14 +61,14 @@ class TaskPlanningFixture : public testing::Test {
 
 TEST_F(TaskPlanningFixture, TestNumPublishers) {
   tester_node_ = rclcpp::Node::make_shared("test_publisher");
-  auto test_pub =
-      tester_node_->create_publisher<std_msgs::msg::String>("chatter", 10.0);
+  //auto test_pub =
+     // tester_node_->create_publisher<std_msgs::msg::String>("chatter", 10.0);
 
   auto number_of_publishers = tester_node_->count_publishers("chatter");
   EXPECT_EQ(1, static_cast<int>(number_of_publishers));
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   int result = RUN_ALL_TESTS();
