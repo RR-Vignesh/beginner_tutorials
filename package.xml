@@ -3,9 +3,9 @@
 <package format="3">
   <name>cpp_pubsub</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>The following package tests publisher. subscriber, client and server functions and along with transform and rosbag</description>
   <maintainer email="vignesh31794@gmail.com">vignesh</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
