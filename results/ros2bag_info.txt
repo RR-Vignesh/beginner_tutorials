@@ -1,0 +1,11 @@
+vignesh@vignesh-Dell-G15-5515:~/ros2_working$ ros2 bag info rosbag2_2022_12_05-22_14_25/
+
+Files:             rosbag2_2022_12_05-22_14_25_0.db3
+Bag size:          17.0 KiB
+Storage id:        sqlite3
+Duration:          49.453s
+Start:             Dec  5 2022 22:14:56.377 (1670296496.377)
+End:               Dec  5 2022 22:15:45.831 (1670296545.831)
+Messages:          75
+Topic information: Topic: /chatter | Type: std_msgs/msg/String | Count: 75 | Serialization Format: cdr
+
