@@ -50,7 +50,7 @@ using PARAMETER_HANDLE = std::shared_ptr<rclcpp::ParameterCallbackHandle>;
  *
  */
 class MinimalPublisher : public rclcpp::Node {
-public:
+ public:
   MinimalPublisher() : Node("minimal_publisher"), count_(0) {
     try {
       publisher_ = this->create_publisher<std_msgs::msg::String>("chatter", 10);
@@ -79,7 +79,6 @@ public:
 
       // Publish static transforms once at startup
       this->make_transforms();
-
     } catch (...) {
       RCLCPP_ERROR_STREAM(this->get_logger(),
                           "Error encountered at time of initialization!!");
@@ -107,7 +106,7 @@ public:
                 response->output.c_str());
   }
 
-private:
+ private:
   /**
    * @brief Publish the message on topic at a defined rate
    *

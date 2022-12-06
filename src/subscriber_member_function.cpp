@@ -38,7 +38,8 @@ class MinimalSubscriber : public rclcpp::Node {
   MinimalSubscriber() : Node("minimal_subscriber") {
     try {
       subscription_ = this->create_subscription<std_msgs::msg::String>(
-          "chatter", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
+          "chatter", 10,
+          std::bind(&MinimalSubscriber::topic_callback, this, _1));
       RCLCPP_DEBUG_STREAM(this->get_logger(), "Initialized the Subscriber");
     } catch (...) {
       RCLCPP_ERROR_STREAM(this->get_logger(),
